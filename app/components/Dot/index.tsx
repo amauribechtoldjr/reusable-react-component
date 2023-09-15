@@ -23,7 +23,7 @@ const Dot: FC<DotProps> = ({ className, variant }) => {
     <div className="inline-block w-10 inline-flex items-center">
       <div
         className={cn(dotVariants({ variant, className }))}
-        data-testid="stepper-dot"
+        data-testid="steps-dot"
       />
     </div>
   );

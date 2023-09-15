@@ -1,10 +1,10 @@
-import { useReducer, useState } from "react";
-import type { StepperProps } from ".";
+import { useReducer } from "react";
+import type { StepsProps } from ".";
 import { callAll } from "~/utils/js";
 
 type Next = { type: "next" };
 type Previous = { type: "previous" };
-type Loading = { type: "loading" };
+type Loading = { type: "loading"; value: boolean };
 
 export type ReducerStepsActions = Next | Previous | Loading;
 export interface StepsState {
@@ -34,7 +34,7 @@ export const StepsReducer = (
       return { ...state, activeStep: state.activeStep - 1 };
     }
     case "loading": {
-      return { ...state, isLoading: !state.isLoading };
+      return { ...state, isLoading: action.value };
     }
     default: {
       return state;
@@ -42,17 +42,19 @@ export const StepsReducer = (
   }
 };
 
-interface UseStepperProps {
+interface UseStepsProps {
   steps: string[];
   startStep?: string;
   reducer?: (state: StepsState, action: ReducerStepsActions) => StepsState;
+  validate?: (activeStep: string) => Promise<boolean>;
 }
 
-const useStepper = ({
+const useSteps = ({
   steps,
   startStep,
   reducer = StepsReducer,
-}: UseStepperProps) => {
+  validate,
+}: UseStepsProps) => {
   const [state, dispatch] = useReducer(reducer, {
     steps,
     startStep,
@@ -60,25 +62,36 @@ const useStepper = ({
     activeStep: startStep ? steps.findIndex((step) => step === startStep) : 0,
   });
 
-  const handleNextStep = async () => {
+  const handleOnNext = async () => {
+    if (validate) {
+      dispatch({ type: "loading", value: true });
+
+      const isValid = await validate(steps[state.activeStep]);
+
+      dispatch({ type: "loading", value: false });
+
+      if (!isValid) {
+        return;
+      }
+    }
     dispatch({ type: "next" });
   };
 
-  const handlePreviousStep = () => {
+  const handleOnPrevious = () => {
     dispatch({ type: "previous" });
   };
 
-  const getStepperProps: (params: Partial<StepperProps>) => StepperProps = ({
-    nextStep,
-    previousStep,
+  const getStepsProps: (params: Partial<StepsProps>) => StepsProps = ({
+    onNext,
+    onPrevious,
     "aria-label": ariaLabel,
     ...props
   }) => {
     return {
       isLoading: state.isLoading,
       activeStep: state.activeStep,
-      nextStep: callAll(nextStep, handleNextStep),
-      previousStep: callAll(previousStep, handlePreviousStep),
+      onNext: callAll(handleOnNext, onNext),
+      onPrevious: callAll(handleOnPrevious, onPrevious),
       "aria-label": ariaLabel ?? "Navegation component by steps",
       numberSteps: steps.length,
       ...props,
@@ -88,10 +101,10 @@ const useStepper = ({
   return {
     isLoading: state.isLoading,
     activeStep: state.activeStep,
-    nextStep: handleNextStep,
-    previousStep: handlePreviousStep,
-    getStepperProps,
+    onNext: handleOnNext,
+    onPrevious: handleOnPrevious,
+    getStepsProps,
   };
 };
 
-export { useStepper };
+export { useSteps };

@@ -1,63 +1,69 @@
 import ServiceTermsStep from "./ServiceTermsStep";
 import FormAccountStep from "./FormAccountStep";
-import { useStepper } from "~/components/Stepper/useStepper";
-import Stepper from "~/components/Stepper";
-// import store from "./store";
+import { useSteps } from "~/components/Steps/useSteps";
+import Steps from "~/components/Steps";
+import store from "./store";
 import ConfirmationStep from "./ConfirmationStep";
-// import { useNavigate } from "@remix-run/react";
-import { SignupStepsReducer } from "./reducer";
+import { useNavigate } from "@remix-run/react";
 
-export enum SignupSteps {
-  serviceTerms = "serviceTerms",
-  formAccount = "formAccount",
-  confirmation = "confirmation",
-}
+// import { SignupStepsReducer } from "./reducer";
 
-const steps = Object.keys(SignupSteps) as SignupSteps[];
+const stepsTypes = {
+  serviceTerms: "serviceTerms",
+  formAccount: "formAccount",
+  confirmation: "confirmation",
+};
 
-// const stepsValidation = {
-//   [SignupSteps.serviceTerms]: async () => true,
-//   [SignupSteps.formAccount]: async () =>
-//     await store.handleFormAccountSubmit(),
-//   [SignupSteps.confirmation]: async () => {
-//     const completeSignupResponse = await store.handleConfirmationCodeSubmit();
+const steps = Object.keys(stepsTypes);
 
-//     if (completeSignupResponse) {
-//       navigate("/welcome");
-//     }
+const SignupStepsFeature = () => {
+  const navigate = useNavigate();
 
-//     return false;
-//   },
-// };
+  const stepsValidation = {
+    [stepsTypes.serviceTerms]: async () => true,
+    [stepsTypes.formAccount]: async () => await store.handleFormAccountSubmit(),
+    [stepsTypes.confirmation]: async () => {
+      const completeSignupResponse = await store.handleConfirmationCodeSubmit();
 
-const SignupStepper = () => {
-  // const navigate = useNavigate();
+      if (completeSignupResponse) {
+        navigate("/welcome");
+      }
 
-  const { getStepperProps } = useStepper({
+      return false;
+    },
+  };
+
+  const { getStepsProps } = useSteps({
     steps,
-    reducer: SignupStepsReducer,
+    validate: async (activeStep: string) => {
+      try {
+        const validation = await stepsValidation[activeStep]();
+        return validation;
+      } catch (error) {
+        return false;
+      }
+    },
+
+    // reducer: SignupStepsReducer,
+    // Add a reducer if you want to add your own behaviors
   });
 
   return (
-    <Stepper.Root
+    <Steps.Root
       className="bg-white w-full m-8 md:max-w-min"
-      {...getStepperProps({
-        nextStep(activeStep) {
-          console.log(steps[activeStep]);
-        },
-      })}
+      {...getStepsProps({})}
     >
-      <Stepper.Step className="md:min-w-[500px]">
+      <Steps.Step className="md:min-w-[500px]">
         <ServiceTermsStep />
-      </Stepper.Step>
-      <Stepper.Step className="md:min-w-[500px]">
+      </Steps.Step>
+      <Steps.Step className="md:min-w-[500px]">
         <FormAccountStep />
-      </Stepper.Step>
-      <Stepper.Step className="w-80">
+      </Steps.Step>
+      <Steps.Step className="w-80">
         <ConfirmationStep />
-      </Stepper.Step>
-    </Stepper.Root>
+      </Steps.Step>
+    </Steps.Root>
   );
 };
 
-export default SignupStepper;
+export default SignupStepsFeature;

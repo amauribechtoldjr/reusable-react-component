@@ -3,11 +3,11 @@ import { Button } from "~/components/Button";
 import { ComponentProps, FC } from "react";
 import { Dot } from "~/components/Dot";
 
-export interface StepperProps extends ComponentProps<"div"> {
+export interface StepsProps extends ComponentProps<"div"> {
   isLoading: boolean;
   numberSteps: number;
-  nextStep: (activeStep: number) => void;
-  previousStep: (activeStep: number) => void;
+  onNext: (activeStep: number) => void;
+  onPrevious: (activeStep: number) => void;
   activeStep: number;
 }
 
@@ -23,11 +23,11 @@ function createDots(numberSteps: number, currentStep: number) {
   return dots;
 }
 
-const Stepper: FC<StepperProps> = ({
+const Steps: FC<StepsProps> = ({
   children,
   className,
-  nextStep,
-  previousStep,
+  onNext,
+  onPrevious,
   isLoading,
   activeStep,
   numberSteps,
@@ -38,7 +38,7 @@ const Stepper: FC<StepperProps> = ({
     !Array.isArray(children) ||
     children.length !== numberSteps
   ) {
-    throw new Error("Stepper must have childs equal to numberSteps");
+    throw new Error("Steps must have childs equal to numberSteps");
   }
 
   const selectedStepComponent = children[activeStep];
@@ -57,20 +57,20 @@ const Stepper: FC<StepperProps> = ({
       <div className="flex flex-row items-center h-24 w-full bg-white border-t">
         {activeStep > 0 && (
           <Button
-            onClick={() => previousStep(activeStep)}
+            onClick={() => onPrevious(activeStep)}
             className="ml-8 mr-2 md:m-8"
             variant={"secondary"}
-            aria-label="Previous stepper button"
+            aria-label="Previous steps button"
           >
             Back
           </Button>
         )}
         <Button
           className="mr-8 ml-2 ml-auto md:m-8 md:ml-auto"
-          onClick={() => nextStep(activeStep)}
+          onClick={() => onNext(activeStep)}
           disabled={isLoading}
           aria-label={
-            isLoading ? "Loading stepper button" : "Continue stepper button"
+            isLoading ? "Loading steps button" : "Continue steps button"
           }
         >
           {isLoading ? "Loading" : "Continue"}
@@ -81,6 +81,6 @@ const Stepper: FC<StepperProps> = ({
 };
 
 export default {
-  Root: Stepper,
+  Root: Steps,
   Step,
 };

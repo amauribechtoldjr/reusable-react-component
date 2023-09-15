@@ -1,30 +1,30 @@
-import Stepper from "./";
+import Steps from ".";
 import { render, screen, user } from "~/utils/tests/tests";
 
-describe("<Stepper />", () => {
+describe("<Steps />", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
   it("should render correctly", () => {
     render(
-      <Stepper.Root
+      <Steps.Root
         activeStep={0}
-        isLoadingNextStep={false}
+        isLoading={false}
         nextStep={() => {}}
         numberSteps={3}
         previousStep={() => {}}
-        data-testid="stepper-root"
+        data-testid="steps-root"
       >
         <div></div>
         <div></div>
         <div></div>
-      </Stepper.Root>
+      </Steps.Root>
     );
 
-    const stepper = screen.getByTestId(/stepper-root/i);
+    const steps = screen.getByTestId(/steps-root/i);
 
-    expect(stepper).toBeTruthy();
+    expect(steps).toBeTruthy();
   });
 
   it("should not render when children.lenght is different from numberSteps", () => {
@@ -32,22 +32,22 @@ describe("<Stepper />", () => {
 
     try {
       render(
-        <Stepper.Root
+        <Steps.Root
           activeStep={0}
-          isLoadingNextStep={false}
+          isLoading={false}
           nextStep={() => {}}
           numberSteps={3}
           previousStep={() => {}}
-          data-testid="stepper-root"
+          data-testid="steps-root"
         >
           <div></div>
           <div></div>
-        </Stepper.Root>
+        </Steps.Root>
       );
 
       expect(true).toBe(false); // should not reach this line
     } catch (e: any) {
-      expect(e?.message).toBe("Stepper must have childs equal to numberSteps");
+      expect(e?.message).toBe("steps must have childs equal to numberSteps");
     }
   });
 
@@ -55,26 +55,26 @@ describe("<Stepper />", () => {
     const nextStep = jest.fn();
 
     render(
-      <Stepper.Root
+      <Steps.Root
         activeStep={0}
-        isLoadingNextStep={false}
+        isLoading={false}
         nextStep={nextStep}
         numberSteps={3}
         previousStep={() => {}}
-        data-testid="stepper-root"
+        data-testid="steps-root"
       >
         <div></div>
         <div></div>
         <div></div>
-      </Stepper.Root>
+      </Steps.Root>
     );
 
-    const stepper = screen.getByTestId(/stepper-root/i);
+    const steps = screen.getByTestId(/steps-root/i);
     const nextButton = screen.getByRole("button", { name: /continue/i });
 
     await user.click(nextButton);
 
-    expect(stepper).toBeTruthy();
+    expect(steps).toBeTruthy();
     expect(nextStep).toHaveBeenCalledTimes(1);
   });
 
@@ -82,47 +82,47 @@ describe("<Stepper />", () => {
     const previousStepFn = jest.fn();
 
     render(
-      <Stepper.Root
+      <Steps.Root
         activeStep={1}
-        isLoadingNextStep={false}
+        isLoading={false}
         nextStep={() => {}}
         numberSteps={3}
         previousStep={previousStepFn}
-        data-testid="stepper-root"
+        data-testid="steps-root"
       >
         <div></div>
         <div></div>
         <div></div>
-      </Stepper.Root>
+      </Steps.Root>
     );
 
-    const stepper = screen.getByTestId(/stepper-root/i);
+    const steps = screen.getByTestId(/steps-root/i);
     const previousStepbutton = screen.getByText(/back/i);
 
     await user.click(previousStepbutton);
 
-    expect(stepper).toBeTruthy();
+    expect(steps).toBeTruthy();
     expect(previousStepFn).toHaveBeenCalledTimes(1);
   });
 
   it("should show loading state correctly", async () => {
     render(
-      <Stepper.Root
+      <Steps.Root
         activeStep={1}
-        isLoadingNextStep={true}
+        isLoading={true}
         nextStep={() => {}}
         numberSteps={3}
         previousStep={() => {}}
-        data-testid="stepper-root"
+        data-testid="steps-root"
       >
         <div></div>
         <div></div>
         <div></div>
-      </Stepper.Root>
+      </Steps.Root>
     );
 
     const nextButton = screen.getByRole("button", {
-      name: /loading stepper button/i,
+      name: /loading steps button/i,
     });
 
     expect(nextButton).toBeTruthy();
