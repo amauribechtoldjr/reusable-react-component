@@ -2,100 +2,70 @@ import { useReducer, useState } from "react";
 import type { StepperProps } from ".";
 import { callAll } from "~/utils/js";
 
-enum StepsActions {
-  "next",
-  "previous",
-  "loading",
-}
+type Next = { type: "next" };
+type Previous = { type: "previous" };
+type Loading = { type: "loading" };
 
-type ReducerAction = {
-  type: StepsActions;
-};
-
-interface StepsState<T> {
-  startStep?: T;
+export type ReducerStepsActions = Next | Previous | Loading;
+export interface StepsState {
   activeStep: number;
   isLoading: boolean;
-  steps: T[];
+  steps: string[];
+  startStep?: string;
 }
 
-const initialState = <T>({
-  startStep,
-  steps,
-}: {
-  startStep?: T;
-  steps: T[];
-}): StepsState<T> => {
-  return {
-    startStep: startStep ?? undefined,
-    activeStep: 0,
-    isLoading: false,
-    steps,
-  };
-};
-
-type ReducerFn = <T>(
-  state: StepsState<T>,
-  action: ReducerAction
-) => StepsState<T>;
-
-const reducer: ReducerFn = (state, action) => {
+export const StepsReducer = (
+  state: StepsState,
+  action: ReducerStepsActions
+) => {
   switch (action.type) {
-    case StepsActions.next: {
-      console.log(state);
+    case "next": {
       if (state.activeStep === state.steps.length - 1) {
-        return { ...state };
+        return state;
       }
+
       return { ...state, activeStep: state.activeStep + 1 };
     }
-    case StepsActions.previous: {
+    case "previous": {
+      if (state.activeStep === 0) {
+        return state;
+      }
+
       return { ...state, activeStep: state.activeStep - 1 };
     }
-    case StepsActions.loading: {
+    case "loading": {
       return { ...state, isLoading: !state.isLoading };
     }
     default: {
-      throw new Error("No valid action for the Steps reducer");
+      return state;
     }
   }
 };
 
-interface UseStepperProps<T> {
-  steps: T[];
-  startStep?: T;
-  onNextStep?: (currentStep: T) => Promise<boolean>;
+interface UseStepperProps {
+  steps: string[];
+  startStep?: string;
+  reducer?: (state: StepsState, action: ReducerStepsActions) => StepsState;
 }
 
-const createInitialState = <T>({ ...args }: StepsState<T>): StepsState<T> => {
-  return {
-    ...args,
-  };
-};
-
-const useStepper = <T>({
+const useStepper = ({
   steps,
   startStep,
-  onNextStep,
-}: UseStepperProps<T>) => {
-  const [state, dispatch] = useReducer(
-    reducer<T>,
-    { ...initialState<T>({ startStep, steps }) },
-    createInitialState<T>
-  );
+  reducer = StepsReducer,
+}: UseStepperProps) => {
+  const [state, dispatch] = useReducer(reducer, {
+    steps,
+    startStep,
+    isLoading: false,
+    activeStep: startStep ? steps.findIndex((step) => step === startStep) : 0,
+  });
 
   const handleNextStep = async () => {
-    if (onNextStep) {
-      dispatch({ type: StepsActions.loading });
-      const isValid = await onNextStep(steps[state.activeStep]);
-      dispatch({ type: StepsActions.loading });
-
-      if (!isValid) return;
-    }
-    dispatch({ type: StepsActions.next });
+    dispatch({ type: "next" });
   };
 
   const handlePreviousStep = () => {
-    dispatch({ type: StepsActions.previous });
+    dispatch({ type: "previous" });
   };
 
   const getStepperProps: (params: Partial<StepperProps>) => StepperProps = ({

@@ -681,46 +681,31 @@ var callAll = (...fns) => (...args) => {
 };
 
 // app/components/Stepper/useStepper.ts
-var initialState = ({
-  startStep,
-  steps: steps2
-}) => ({
-  startStep: startStep ?? void 0,
-  activeStep: 0,
-  isLoading: !1,
-  steps: steps2
-}), reducer = (state, action) => {
+var StepsReducer = (state, action) => {
   switch (action.type) {
-    case 0 /* next */:
-      return console.log(state), state.activeStep === state.steps.length - 1 ? { ...state } : { ...state, activeStep: state.activeStep + 1 };
-    case 1 /* previous */:
-      return { ...state, activeStep: state.activeStep - 1 };
-    case 2 /* loading */:
+    case "next":
+      return state.activeStep === state.steps.length - 1 ? state : { ...state, activeStep: state.activeStep + 1 };
+    case "previous":
+      return state.activeStep === 0 ? state : { ...state, activeStep: state.activeStep - 1 };
+    case "loading":
       return { ...state, isLoading: !state.isLoading };
     default:
-      throw new Error("No valid action for the Steps reducer");
+      return state;
   }
-}, createInitialState = ({ ...args }) => ({
-  ...args
-}), useStepper = ({
+}, useStepper = ({
   steps: steps2,
   startStep,
-  onNextStep
+  reducer = StepsReducer
 }) => {
-  let [state, dispatch] = (0, import_react6.useReducer)(
-    reducer,
-    { ...initialState({ startStep, steps: steps2 }) },
-    createInitialState
-  ), handleNextStep = async () => {
-    if (onNextStep) {
-      dispatch({ type: 2 /* loading */ });
-      let isValid = await onNextStep(steps2[state.activeStep]);
-      if (dispatch({ type: 2 /* loading */ }), !isValid)
-        return;
-    }
-    dispatch({ type: 0 /* next */ });
+  let [state, dispatch] = (0, import_react6.useReducer)(reducer, {
+    steps: steps2,
+    startStep,
+    isLoading: !1,
+    activeStep: startStep ? steps2.findIndex((step) => step === startStep) : 0
+  }), handleNextStep = async () => {
+    dispatch({ type: "next" });
   }, handlePreviousStep = () => {
-    dispatch({ type: 1 /* previous */ });
+    dispatch({ type: "previous" });
   }, getStepperProps = ({
     nextStep,
     previousStep,
@@ -952,16 +937,14 @@ function ConfirmationStep() {
 }
 var ConfirmationStep_default = (0, import_mobx_react2.observer)(ConfirmationStep);
 
+// app/features/Signup/reducer.ts
+var SignupStepsReducer = (state, action) => action.type === "next" ? state.activeStep === state.steps.length - 1 ? { ...state } : state.steps[state.activeStep] === "formAccount" /* formAccount */ ? { ...state } : { ...state, activeStep: state.activeStep + 1 } : StepsReducer(state, action);
+
 // app/features/Signup/index.tsx
-var import_react8 = require("@remix-run/react"), import_jsx_dev_runtime13 = require("react/jsx-dev-runtime"), SignupSteps = /* @__PURE__ */ ((SignupSteps2) => (SignupSteps2.serviceTerms = "serviceTerms", SignupSteps2.formAccount = "formAccount", SignupSteps2.confirmation = "confirmation", SignupSteps2))(SignupSteps || {}), steps = Object.keys(SignupSteps), SignupStepper = () => {
-  let navigate = (0, import_react8.useNavigate)(), stepsValidation = {
-    ["serviceTerms" /* serviceTerms */]: async () => !0,
-    ["formAccount" /* formAccount */]: async () => await store_default.handleFormAccountSubmit(),
-    ["confirmation" /* confirmation */]: async () => (await store_default.handleConfirmationCodeSubmit() && navigate("/welcome"), !1)
-  }, { getStepperProps } = useStepper({
-    startStep: "confirmation" /* confirmation */,
+var import_jsx_dev_runtime13 = require("react/jsx-dev-runtime"), SignupSteps = /* @__PURE__ */ ((SignupSteps2) => (SignupSteps2.serviceTerms = "serviceTerms", SignupSteps2.formAccount = "formAccount", SignupSteps2.confirmation = "confirmation", SignupSteps2))(SignupSteps || {}), steps = Object.keys(SignupSteps), SignupStepper = () => {
+  let { getStepperProps } = useStepper({
     steps,
-    onNextStep: async (currentStep) => stepsValidation[currentStep]()
+    reducer: SignupStepsReducer
   });
   return /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(
     Stepper_default.Root,
@@ -975,29 +958,29 @@ var import_react8 = require("@remix-run/react"), import_jsx_dev_runtime13 = requ
       children: [
         /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(Stepper_default.Step, { className: "md:min-w-[500px]", children: /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(ServiceTermsStep, {}, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 52,
+          lineNumber: 51,
           columnNumber: 9
         }, this) }, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 51,
+          lineNumber: 50,
           columnNumber: 7
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(Stepper_default.Step, { className: "md:min-w-[500px]", children: /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(FormAccountStep_default, {}, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 55,
+          lineNumber: 54,
           columnNumber: 9
         }, this) }, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 54,
+          lineNumber: 53,
           columnNumber: 7
         }, this),
         /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(Stepper_default.Step, { className: "w-80", children: /* @__PURE__ */ (0, import_jsx_dev_runtime13.jsxDEV)(ConfirmationStep_default, {}, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 58,
+          lineNumber: 57,
           columnNumber: 9
         }, this) }, void 0, !1, {
           fileName: "app/features/Signup/index.tsx",
-          lineNumber: 57,
+          lineNumber: 56,
           columnNumber: 7
         }, this)
       ]
@@ -1006,7 +989,7 @@ var import_react8 = require("@remix-run/react"), import_jsx_dev_runtime13 = requ
     !0,
     {
       fileName: "app/features/Signup/index.tsx",
-      lineNumber: 43,
+      lineNumber: 42,
       columnNumber: 5
     },
     this
@@ -1032,7 +1015,7 @@ function Index() {
 }
 
 // server-assets-manifest:@remix-run/dev/assets-manifest
-var assets_manifest_default = { entry: { module: "/build/entry.client-O5AK5KBR.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-2BTLULYS.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-EZKCA2DC.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-IKGOI46H.js", imports: void 0, hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-J6HFVVF3.js", imports: ["/build/_shared/chunk-65BMFJ2J.js"], hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 }, "routes/welcome": { id: "routes/welcome", parentId: "root", path: "welcome", index: void 0, caseSensitive: void 0, module: "/build/routes/welcome-JOCSRU3Z.js", imports: ["/build/_shared/chunk-65BMFJ2J.js"], hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 } }, version: "1570fcb1", hmr: { runtime: "/build/_shared/chunk-EZKCA2DC.js", timestamp: 1694780794308 }, url: "/build/manifest-1570FCB1.js" };
+var assets_manifest_default = { entry: { module: "/build/entry.client-6J6JHZSY.js", imports: ["/build/_shared/chunk-ZWGWGGVF.js", "/build/_shared/chunk-2BTLULYS.js", "/build/_shared/chunk-GIAAE3CH.js", "/build/_shared/chunk-XU7DNSPJ.js", "/build/_shared/chunk-EZKCA2DC.js", "/build/_shared/chunk-UWV35TSL.js", "/build/_shared/chunk-BOXFZXVX.js", "/build/_shared/chunk-PNG5AS42.js"] }, routes: { root: { id: "root", parentId: void 0, path: "", index: void 0, caseSensitive: void 0, module: "/build/root-IKGOI46H.js", imports: void 0, hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 }, "routes/_index": { id: "routes/_index", parentId: "root", path: void 0, index: !0, caseSensitive: void 0, module: "/build/routes/_index-6QAESJXV.js", imports: ["/build/_shared/chunk-65BMFJ2J.js"], hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 }, "routes/welcome": { id: "routes/welcome", parentId: "root", path: "welcome", index: void 0, caseSensitive: void 0, module: "/build/routes/welcome-JOCSRU3Z.js", imports: ["/build/_shared/chunk-65BMFJ2J.js"], hasAction: !1, hasLoader: !1, hasCatchBoundary: !1, hasErrorBoundary: !1 } }, version: "cdb99729", hmr: { runtime: "/build/_shared/chunk-EZKCA2DC.js", timestamp: 1694799155874 }, url: "/build/manifest-CDB99729.js" };
 
 // server-entry-module:@remix-run/dev/server-build
 var assetsBuildDirectory = "public/build", future = { v2_dev: !0, unstable_postcss: !1, unstable_tailwind: !1, v2_errorBoundary: !0, v2_headers: !0, v2_meta: !0, v2_normalizeFormMethod: !0, v2_routeConvention: !0 }, publicPath = "/build/", entry = { module: entry_server_exports }, routes = {
